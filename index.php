@@ -1,34 +1,24 @@
-<!DOCTYPE html>
-<html>
-<head>
-<link rel="dns-prefetch" href="https://www.cbr-xml-daily.ru/" />
-<script src="//www.cbr-xml-daily.ru/daily_jsonp.js" async></script>
-</head>
-<body>
+<?php
 
-<div id="USD">Доллар США $ — 00,0000 руб.</div>
-<div id="EUR">Евро € — 00,0000 руб.</div>
-
-
-<script>
-function CBR_XML_Daily_Ru(rates) {
-  function trend(current, previous) {
-    if (current > previous) return ' ▲';
-    if (current < previous) return ' ▼';
+function trend($current, $previous) {
+    if ($current > $previous) return ' ▲ '.number_format(($current - $previous),4);
+    if ($current < $previous) return ' ▼ '.number_format(($previous - $current),4);
     return '';
   }
-    
-  var USDrate = rates.Valute.USD.Value.toFixed(4).replace('.', ',');
-  var USD = document.getElementById('USD');
-  USD.innerHTML = USD.innerHTML.replace('00,0000', USDrate);
-  USD.innerHTML += trend(rates.Valute.USD.Value, rates.Valute.USD.Previous);
 
-  var EURrate = rates.Valute.EUR.Value.toFixed(4).replace('.', ',');
-  var EUR = document.getElementById('EUR');
-  EUR.innerHTML = EUR.innerHTML.replace('00,0000', EURrate);
-  EUR.innerHTML += trend(rates.Valute.EUR.Value, rates.Valute.EUR.Previous);
+function CBR_XML_Daily_Ru() {
+    static $rates;
+    
+    if ($rates === null) {
+        $rates = json_decode(file_get_contents('https://www.cbr-xml-daily.ru/daily_json.js'));
+    }
+    
+    return $rates;
 }
 
-</script>
-</body>
-</html>
+$data = CBR_XML_Daily_Ru();
+
+echo "Обменный курс USD по ЦБ РФ на сегодня: 1\$ = {$data->Valute->USD->Value}₽\n".trend($data->Valute->USD->Value, $data->Valute->USD->Previous);
+echo "<br/>Обменный курс Евро по ЦБ РФ на сегодня: 1€ = {$data->Valute->EUR->Value}₽\n".trend($data->Valute->EUR->Value, $data->Valute->EUR->Previous);
+
+?>
